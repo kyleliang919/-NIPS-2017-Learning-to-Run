@@ -2,7 +2,8 @@
 Reinforcement learning environments with musculoskeletal models   
 https://www.crowdai.org/challenges/nips-2017-learning-to-run  
   
-CANDIDATE ALGORITHMS:  
+CANDIDATE ALGORITHMS:  
+
 DDPG(https://arxiv.org/abs/1509.02971)  
 RDPG(https://arxiv.org/pdf/1512.04455.pdf)  
   
