@@ -4,8 +4,8 @@ https://www.crowdai.org/challenges/nips-2017-learning-to-run
   
 CANDIDATE ALGORITHMS:  
 
-DDPG(https://arxiv.org/abs/1509.02971)  
-RDPG(https://arxiv.org/pdf/1512.04455.pdf)  
+Depp Deterministic Policy Gradient---DDPG(https://arxiv.org/abs/1509.02971)  
+Recurrent Deterministic Policy Gradient---RDPG(https://arxiv.org/pdf/1512.04455.pdf)  
   
 MOTIVATION:  
 In this case, we are manipulating the muscles rather than the velocity of the body parts, i.e., if I understood the problem correctly, we are changing the acceleration, which should be considered a second-order markov chain. LSTM and recurrent network might be able to capture the long short term dependencies.  
