@@ -5,4 +5,4 @@ actor_network.py: The code for structure of the actor network
 critic_network.py: The code for structure of the critic network  
 ou_noise.py:The random noise generator    
 ddpg.py:The code for the ddpg algorithm    
-gym_ddpg:Running ddpg on the environment    
+gym_ddpg.py:Running ddpg on the environment    
