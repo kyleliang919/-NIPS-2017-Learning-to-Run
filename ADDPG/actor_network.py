@@ -2,14 +2,12 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 import numpy as np
 import math
+from helper import *
 
 
 # Hyper Parameters
-LAYER1_SIZE = 400
-LAYER2_SIZE = 300
 LEARNING_RATE = 1e-4
 TAU = 0.001
-BATCH_SIZE = 64
 
 class ActorNetwork:
     """docstring for ActorNetwork"""
@@ -25,45 +23,33 @@ class ActorNetwork:
         # define training rules
         if scope != 'global/actor':
 	    self.q_gradient_input = tf.placeholder("float",[None,self.action_dim])
-	    self.parameters_gradients = tf.gradients(self.action_output,self.net,-self.q_gradient_input)
+	    self.parameters_gradients,_ = tf.clip_by_global_norm(tf.gradients(self.action_output,self.net,-self.q_gradient_input),1.0)
 	    global_vars_actor = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'global/actor')
 	    self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(zip(self.parameters_gradients,global_vars_actor))
-	sess.run(tf.global_variables_initializer())
+	    sess.run(tf.global_variables_initializer())
 
         #self.update_target()
         #self.load_network()
 
 
     def create_network(self,state_dim,action_dim,scope):
-	with tf.variable_scope(scope):
-           layer1_size = LAYER1_SIZE
-           layer2_size = LAYER2_SIZE
+        with tf.variable_scope(scope):
 
            state_input = tf.placeholder("float",[None,state_dim])
+           layer1 = slim.fully_connected(state_input,300,activation_fn=tf.nn.elu,weights_initializer=tf.truncated_normal_initializer(stddev=0.1))
+           layer2 = slim.fully_connected(layer1,200,activation_fn=tf.nn.elu,weights_initializer=tf.truncated_normal_initializer(stddev=0.01))
+           action_output = slim.fully_connected(layer2,action_dim,activation_fn=tf.sigmoid,weights_initializer=tf.truncated_normal_initializer(stddev=0.01))
+           net = [v for v in tf.trainable_variables() if scope in v.name]
 
-           W1 = self.variable([state_dim,layer1_size],state_dim)
-           b1 = self.variable([layer1_size],state_dim)
-           W2 = self.variable([layer1_size,layer2_size],layer1_size)
-           b2 = self.variable([layer2_size],layer1_size)
-           W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
-           b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
-
-           layer1 = tf.nn.relu(tf.matmul(state_input,W1) + b1)
-           layer2 = tf.nn.relu(tf.matmul(layer1,W2) + b2)
-           action_output = tf.clip_by_value(tf.nn.relu(tf.matmul(layer2,W3) + b3),0.0,1.0)
-
-           return state_input,action_output,[W1,b1,W2,b2,W3,b3]
+           return state_input,action_output,net
 
     def create_target_network(self,state_dim,action_dim,net,scope):
-        state_input = tf.placeholder("float",[None,state_dim])
-        ema = tf.train.ExponentialMovingAverage(decay=1-TAU)
-        target_update = ema.apply(net)
-        target_net = [ema.average(x) for x in net]
-
-        layer1 = tf.nn.relu(tf.matmul(state_input,target_net[0]) + target_net[1])
-        layer2 = tf.nn.relu(tf.matmul(layer1,target_net[2]) + target_net[3])
-        action_output = tf.clip_by_value(tf.nn.relu(tf.matmul(layer2,target_net[4]) + target_net[5]),0.0,1.0)
-
+        state_input,action_output,target_net = self.create_network(state_dim,action_dim,scope+'/target')
+        # updating target netowrk
+        target_update = []
+        for i in range(len(target_net)):
+            # theta' <-- tau*theta + (1-tau)*theta'
+            target_update.append(target_net[i].assign(tf.add(tf.multiply(TAU,net[i]),tf.multiply((1-TAU),target_net[i]))))
         return state_input,action_output,target_update,target_net
 
     def update_target(self,sess):
