@@ -1,12 +1,13 @@
 import tensorflow as tf
 import numpy as np
 import math
+from helper import dlrelu
 
 
 LAYER1_SIZE = 400
 LAYER2_SIZE = 300
-LEARNING_RATE = 1e-3
-TAU = 0.001
+LEARNING_RATE = 1e-4
+TAU = 1e-4
 L2 = 0.01
 
 class CriticNetwork:
@@ -29,7 +30,7 @@ class CriticNetwork:
         self.create_training_method()
 
         # initialization
-        self.sess.run(tf.initialize_all_variables())
+        self.sess.run(tf.global_variables_initializer())
 
         self.update_target()
 
@@ -57,8 +58,8 @@ class CriticNetwork:
         W3 = tf.Variable(tf.random_uniform([layer2_size,1],-3e-3,3e-3))
         b3 = tf.Variable(tf.random_uniform([1],-3e-3,3e-3))
 
-        layer1 = tf.nn.relu(tf.matmul(state_input,W1) + b1)
-        layer2 = tf.nn.relu(tf.matmul(layer1,W2) + tf.matmul(action_input,W2_action) + b2)
+        layer1 = tf.tanh(tf.matmul(state_input,W1) + b1)
+        layer2 = tf.tanh(tf.matmul(layer1,W2) + tf.matmul(action_input,W2_action) + b2)
         q_value_output = tf.identity(tf.matmul(layer2,W3) + b3)
 
         return state_input,action_input,q_value_output,[W1,b1,W2,W2_action,b2,W3,b3]
@@ -71,8 +72,8 @@ class CriticNetwork:
         target_update = ema.apply(net)
         target_net = [ema.average(x) for x in net]
 
-        layer1 = tf.nn.relu(tf.matmul(state_input,target_net[0]) + target_net[1])
-        layer2 = tf.nn.relu(tf.matmul(layer1,target_net[2]) + tf.matmul(action_input,target_net[3]) + target_net[4])
+        layer1 = tf.tanh(tf.matmul(state_input,target_net[0]) + target_net[1])
+        layer2 = tf.tanh(tf.matmul(layer1,target_net[2]) + tf.matmul(action_input,target_net[3]) + target_net[4])
         q_value_output = tf.identity(tf.matmul(layer2,target_net[5]) + target_net[6])
 
         return state_input,action_input,q_value_output,target_update

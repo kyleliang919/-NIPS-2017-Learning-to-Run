@@ -10,13 +10,23 @@ from critic_network import CriticNetwork
 from actor_network import ActorNetwork
 from replay_buffer import ReplayBuffer
 
+from helper import *
+
 # Hyper Parameters:
 
 REPLAY_BUFFER_SIZE = 1000000
-REPLAY_START_SIZE = 10000
+REPLAY_START_SIZE = 50000
 BATCH_SIZE = 64
-GAMMA = 0.8
+GAMMA = 0.995
 
+
+def make_session(num_cpu):
+    """Returns a session that will use <num_cpu> CPU's only"""
+    tf_config = tf.ConfigProto(
+        inter_op_parallelism_threads=num_cpu,
+        intra_op_parallelism_threads=num_cpu,
+        device_count = {'GPU': 0})
+    return tf.InteractiveSession(config=tf_config)
 
 class DDPG:
     """docstring for DDPG"""
@@ -25,10 +35,10 @@ class DDPG:
         self.environment = env
         # Randomly initialize actor network and critic network
         # with both their target networks
-        self.state_dim = env.observation_space.shape[0]
-        self.action_dim = env.action_space.shape[0]
+        self.state_dim = 58#env.observation_space.shape[0]
+        self.action_dim = 18#env.action_space.shape[0]
 
-        self.sess = tf.InteractiveSession()
+        self.sess = make_session(3)
 
         self.actor_network = ActorNetwork(self.sess,self.state_dim,self.action_dim)
         self.critic_network = CriticNetwork(self.sess,self.state_dim,self.action_dim)
@@ -71,6 +81,18 @@ class DDPG:
         # Update the actor policy using the sampled gradient:
         action_batch_for_gradients = self.actor_network.actions(state_batch)
         q_gradient_batch = self.critic_network.gradients(state_batch,action_batch_for_gradients)
+        
+        q_gradient_batch *= -1.
+        
+        # invert gradient formula : dq = (a_max-a) / (a_max - a_min) if dq>0, else dq = (a - a_min) / (a_max - a_min)
+        for i in range(BATCH_SIZE): # In our case a_max = 1, a_min = 0
+            for j in range(18):
+                dq = q_gradient_batch[i,j]
+                a = action_batch_for_gradients[i,j]
+                if dq > 0.:
+                    q_gradient_batch[i,j] *= (0.95-a)
+                else:
+                    q_gradient_batch[i,j] *= a-0.05
 
         self.actor_network.train(q_gradient_batch,state_batch)
 
@@ -86,11 +108,11 @@ class DDPG:
     def noise_action(self,state):
         # Select action a_t according to the current policy and exploration noise
         action = self.actor_network.action(state)
-        return action+self.exploration_noise.noise()
+        return np.clip(action+self.exploration_noise.noise(),0.05,0.95)
 
     def action(self,state):
         action = self.actor_network.action(state)
-        return action
+        return np.clip(action,0.05,0.95)
 
     def perceive(self,state,action,reward,next_state,done):
         # Store transition (s_t,a_t,r_t,s_{t+1}) in replay buffer
