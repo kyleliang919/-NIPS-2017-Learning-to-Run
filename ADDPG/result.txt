@@ -1,2 +1,27 @@
-Starting time: Fri, 25 Aug 2017 16:08:03
-Episode 900 reward (training): 0.93
+Starting time: Thu, 07 Sep 2017 22:11:24
+Episode 0 reward (training): 0.77
+Episode 5 reward (training): 0.66
+Episode 10 reward (training): 1.27
+episode: 10 Evaluation(testing) Average Return: 0.249565513532
+Episode 15 reward (training): 0.29
+episode: 20 Evaluation(testing) Average Return: 0.282877010907
+Episode 20 reward (training): 0.21
+Episode 25 reward (training): 1.01
+Episode 30 reward (training): -0.01
+episode: 30 Evaluation(testing) Average Return: 0.275043940261
+Episode 35 reward (training): 1.52
+Episode 40 reward (training): -0.75
+Episode 45 reward (training): 1.31
+episode: 40 Evaluation(testing) Average Return: 0.258638034099
+Episode 50 reward (training): 0.80
+episode: 50 Evaluation(testing) Average Return: 0.252977419324
+Episode 55 reward (training): 1.07
+Episode 60 reward (training): 0.50
+Episode 65 reward (training): -0.79
+episode: 60 Evaluation(testing) Average Return: -0.803841265937
+Episode 70 reward (training): -0.80
+Episode 75 reward (training): 0.88
+episode: 70 Evaluation(testing) Average Return: -0.692373570603
+Episode 80 reward (training): -0.72
+episode: 80 Evaluation(testing) Average Return: -0.865256179297
+Episode 85 reward (training): 1.39

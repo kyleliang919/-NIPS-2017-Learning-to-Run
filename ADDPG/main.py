@@ -10,33 +10,36 @@ def main():
 
     parser = argparse.ArgumentParser(description='Train or test neural net motor controller')
     parser.add_argument('--load_model', dest='load_model', action='store_true', default=False)
-    parser.add_argument('--num_workers', dest='num_workers',action='store',default=1,type=int)
+    parser.add_argument('--num_workers', dest='num_workers',action='store',default=3,type=int)
     parser.add_argument('--visualize', dest='vis', action='store_true', default=False)
     args = parser.parse_args()
 
     load_model = args.load_model
     num_workers = args.num_workers
     vis = args.vis
-    training = True
+    training = True#not load_model
     model_path = './models'
 
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 	
-    explore = 2000
+    # hyperparameters
+    explore = 1000
+    batch_size = 32
+    gamma = 0.995
+    n_step = 3
         
     tf.reset_default_graph()
         
     with tf.Session() as sess:
 	    with tf.device("/cpu:0"): 
            	global_episodes = tf.Variable(0,dtype=tf.int32,name='global_episodes',trainable=False)
-	        global_actor_network = ActorNetwork(sess,41,18,'global'+'/actor')
-	        global_critic_network = CriticNetwork(sess,41,18,'global'+'/critic')
+	        global_actor_network = ActorNetwork(sess,41+14+3,18,'global'+'/actor')
 	        num_cpu = multiprocessing.cpu_count() # Set workers ot number of available CPU threads
 	        workers = []
 	        # Create worker classes
 	        for i in range(num_workers):
-	            worker = Worker(sess,i,model_path,global_episodes,explore,training,vis)
+	            worker = Worker(sess,i,model_path,global_episodes,explore,training,vis,batch_size,gamma,n_step,global_actor_network.net)
 		    workers.append(worker)
 	        saver = tf.train.Saver()
 
@@ -58,6 +61,7 @@ def main():
                 t.daemon = True
                 t.start()
                 worker_threads.append(t)
+                sleep(0.05)
             coord.join(worker_threads)
         
 if __name__ == "__main__":

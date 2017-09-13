@@ -15,8 +15,7 @@ def main():
 
     returns = []
     rewards = []
-    
-    ea = engineered_action()
+
     rs = RunningStats()
 
     for episode in xrange(EPISODES):
@@ -27,8 +26,10 @@ def main():
         demo = 50
         n_step = 3
         s,s1 = [],[]
-        for i in range(demo):
-            ob = env.step(ea)[0]
+        ea = engineered_action(np.random.rand())
+        if np.random.rand() < 0.5:
+            for i in range(demo):
+                ob = env.step(ea)[0]
         ob = env.step(ea)[0]
         s = ob
         ob = env.step(ea)[0]
@@ -36,16 +37,19 @@ def main():
         s = process_state(s,s1,center=True) #s, which stands for state, is the new ob
         rs.normalize(s)
         for step in xrange(1000):
-            ac = agent.noise_action(s)
+            ac = agent.action(s)
+            print(ac)
+            ac = np.clip(ac + agent.exploration_noise.noise(),0.05,0.95)
             temp = 0
             for i in range(n_step):
-                ob, rew, new, _ = env.step(ac+agent.exploration_noise.noise())
+                ob, rew, new, _ = env.step(ac+agent.exploration_noise.noise()*0.2,0.05,0.95))
                 rew = (rew/0.01 + int(new) * 0.1 + int((ob[2]/0.70)<1.0) * -1.)
                 temp += rew
                 if new: 
                     break
                 s1 = ob
             rew = temp
+            print(rew)
             s1 = process_state(s1,ob,center=True)
             rs.normalize(s1)
             agent.perceive(s,ac,rew,s1,new)

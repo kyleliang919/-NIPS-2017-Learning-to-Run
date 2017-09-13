@@ -4,7 +4,7 @@ import tensorflow as tf
 # Copies one set of variables to another.
 # Used to set worker network parameters to those of global network.
 
-def dlrelu(x, alpha=0.2):
+def dlrelu(x, alpha=0.1):
   return tf.nn.relu(x) - alpha * tf.nn.relu(0.05-x) - (1 - alpha) *  tf.nn.relu(x-0.95) 
 
 class RunningStats:
@@ -86,18 +86,29 @@ def n_step_transition(episode_buffer,n_step,gamma):
       r += episode_buffer[-1-n_step+i][2]*gamma**i
     return [s,action,r,s1,done]
 
-def engineered_action():
+def engineered_action(seed):
     test = np.ones(18)*0.05
-    test[0] = 0.3
-    test[3] = 0.8
-    test[4] = 0.5
-    test[6] = 0.3
-    test[8] = 0.8
-    test[9] = 0.3
-    test[11] = 0.5
-    test[14] = 0.3
-    test[17] = 0.5
-        
+    if seed < 0.5:
+        test[0] = 0.3
+        test[3] = 0.8
+        test[4] = 0.5
+        test[6] = 0.3
+        test[8] = 0.8
+        test[9] = 0.3
+        test[11] = 0.5
+        test[14] = 0.3
+        test[17] = 0.5
+    else:
+        test[9] = 0.3
+        test[12] = 0.8
+        test[13] = 0.5
+        test[15] = 0.3
+        test[17] = 0.8
+        test[0] = 0.3
+        test[2] = 0.5
+        test[3] = 0.3
+        test[8] = 0.5
+            
     return test
 
 # [Hacked] the memory might always be leaking, here's a solution #58

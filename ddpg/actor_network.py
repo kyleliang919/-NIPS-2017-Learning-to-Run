@@ -8,7 +8,7 @@ from helper import dlrelu
 LAYER1_SIZE = 400
 LAYER2_SIZE = 300
 LEARNING_RATE = 5e-5
-TAU = 1e-4
+TAU = 1e-5
 BATCH_SIZE = 64
 
 class ActorNetwork:
@@ -48,11 +48,11 @@ class ActorNetwork:
         W2 = self.variable([layer1_size,layer2_size],layer1_size)
         b2 = self.variable([layer2_size],layer1_size)
         W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
-        b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
+        b3 = tf.Variable(tf.random_uniform([action_dim],1e-3,0.1))
 
         layer1 = tf.tanh(tf.matmul(state_input,W1) + b1)
         layer2 = tf.tanh(tf.matmul(layer1,W2) + b2)
-        action_output = dlrelu(tf.matmul(layer2,W3) + b3)
+        action_output = tf.sigmoid(tf.matmul(layer2,W3) + b3)
 
         return state_input,action_output,[W1,b1,W2,b2,W3,b3]
 
@@ -64,7 +64,7 @@ class ActorNetwork:
 
         layer1 = tf.tanh(tf.matmul(state_input,target_net[0]) + target_net[1])
         layer2 = tf.tanh(tf.matmul(layer1,target_net[2]) + target_net[3])
-        action_output = dlrelu(tf.matmul(layer2,target_net[4]) + target_net[5])
+        action_output = tf.sigmoid(tf.matmul(layer2,target_net[4]) + target_net[5])
 
         return state_input,action_output,target_update,target_net
 

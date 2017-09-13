@@ -8,18 +8,31 @@
 import numpy as np
 import numpy.random as nr
 
+test = np.ones(18)*0.05
+test[2] = 0.5
+test[3] = 0.5
+test[9] = 0.5
+test[12] = 0.5
+test[13] = 0.5
+
 class OUNoise:
     """docstring for OUNoise"""
-    def __init__(self,action_dimension,mu=0.0, theta=0.02, sigma=0.07):
+    def __init__(self,action_dimension,mu=0.0, theta=0.1, sigma=0.2):
         self.action_dimension = action_dimension
-        self.mu = mu
+        self.mu = test
         self.theta = theta
         self.sigma = sigma
-        self.state = np.ones(self.action_dimension) * self.mu
-        self.reset()
+        self.state = self.mu
+        self.reset(None)
 
-    def reset(self):
-        self.state = np.ones(self.action_dimension) * self.mu
+    def reset(self,settings):
+        if isinstance(settings,(list,np.ndarray)):
+            self.mu = settings[0]
+            self.theta = settings[1]
+            self.state = np.ones(self.action_dimension) * self.mu
+        else:
+            #self.state = np.ones(self.action_dimension) * self.mu
+            self.state = test
 
     def noise(self):
         x = self.state
@@ -28,10 +41,10 @@ class OUNoise:
         return self.state
 
 if __name__ == '__main__':
-    ou = OUNoise(18)
+    ou = OUNoise(5)
     states = []
-    for i in range(115):
-        states.append([max(0.5,i) for i in ou.noise()])
+    for i in range(200):
+        states.append([i for i in ou.noise()])
     import matplotlib.pyplot as plt
 
     plt.plot(states)

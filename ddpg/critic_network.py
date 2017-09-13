@@ -7,25 +7,27 @@ from helper import dlrelu
 LAYER1_SIZE = 400
 LAYER2_SIZE = 300
 LEARNING_RATE = 1e-4
-TAU = 1e-4
+TAU = 1e-5
 L2 = 0.01
 
 class CriticNetwork:
     """docstring for CriticNetwork"""
-    def __init__(self,sess,state_dim,action_dim):
+    def __init__(self,sess,state_dim,action_dim,atoms,z):
         self.time_step = 0
         self.sess = sess
+        self.atoms = atoms
+        self.z = z
         # create q network
         self.state_input,\
         self.action_input,\
         self.q_value_output,\
-        self.net = self.create_q_network(state_dim,action_dim)
+        self.net = self.create_q_network(state_dim,action_dim,atoms)
 
         # create target q network (the same structure with q network)
         self.target_state_input,\
         self.target_action_input,\
         self.target_q_value_output,\
-        self.target_update = self.create_target_q_network(state_dim,action_dim,self.net)
+        self.target_update = self.create_target_q_network(state_dim,action_dim,atoms,self.net)
 
         self.create_training_method()
 
@@ -36,13 +38,13 @@ class CriticNetwork:
 
     def create_training_method(self):
         # Define training optimizer
-        self.y_input = tf.placeholder("float",[None,1])
-        weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
-        self.cost = tf.reduce_mean(tf.square(self.y_input - self.q_value_output)) + weight_decay
+        self.m_input = tf.placeholder("float",[None,self.atoms])
+        #weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
+        self.cost = -tf.reduce_sum(self.m_input * tf.log(self.q_value_output))# + weight_decay
         self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(self.cost)
-        self.action_gradients = tf.gradients(self.q_value_output,self.action_input)
+        self.action_gradients = tf.gradients(tf.reduce_sum(self.z * self.q_value_output),self.action_input)
 
-    def create_q_network(self,state_dim,action_dim):
+    def create_q_network(self,state_dim,action_dim,atoms):
         # the layer size could be changed
         layer1_size = LAYER1_SIZE
         layer2_size = LAYER2_SIZE
@@ -56,7 +58,7 @@ class CriticNetwork:
         W2_action = self.variable([action_dim,layer2_size],layer1_size+action_dim)
         b2 = self.variable([layer2_size],layer1_size+action_dim)
         W3 = tf.Variable(tf.random_uniform([layer2_size,1],-3e-3,3e-3))
-        b3 = tf.Variable(tf.random_uniform([1],-3e-3,3e-3))
+        b3 = tf.Variable(tf.random_uniform([atoms],4.,5.))
 
         layer1 = tf.tanh(tf.matmul(state_input,W1) + b1)
         layer2 = tf.tanh(tf.matmul(layer1,W2) + tf.matmul(action_input,W2_action) + b2)
@@ -64,7 +66,7 @@ class CriticNetwork:
 
         return state_input,action_input,q_value_output,[W1,b1,W2,W2_action,b2,W3,b3]
 
-    def create_target_q_network(self,state_dim,action_dim,net):
+    def create_target_q_network(self,state_dim,action_dim,atoms,net):
         state_input = tf.placeholder("float",[None,state_dim])
         action_input = tf.placeholder("float",[None,action_dim])
 
@@ -81,10 +83,10 @@ class CriticNetwork:
     def update_target(self):
         self.sess.run(self.target_update)
 
-    def train(self,y_batch,state_batch,action_batch):
+    def train(self,m_batch,state_batch,action_batch):
         self.time_step += 1
         self.sess.run(self.optimizer,feed_dict={
-            self.y_input:y_batch,
+            self.m_input:m_batch,
             self.state_input:state_batch,
             self.action_input:action_batch
             })
