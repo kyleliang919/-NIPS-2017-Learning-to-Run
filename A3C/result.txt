@@ -1,0 +1,195 @@
+Episode 200 reward (testing): 0.55
+Episodes 205 mean reward (training): 0.58
+Episode 205 reward (testing): 0.54
+Episodes 210 mean reward (training): 0.70
+Episode 210 reward (testing): -0.81
+Episodes 215 mean reward (training): 0.88
+Episode 215 reward (testing): 0.54
+Episode 220 reward (testing): -0.79
+Episodes 220 mean reward (training): 0.51
+Episode 225 reward (testing): -0.79
+Episodes 225 mean reward (training): 0.95
+Episode 230 reward (testing): 0.55
+Episodes 230 mean reward (training): 0.60
+Episode 235 reward (testing): 0.56
+Episodes 235 mean reward (training): 0.68
+Episodes 240 mean reward (training): 0.55
+Episode 240 reward (testing): 0.55
+Episodes 245 mean reward (training): 0.85
+Episodes 250 mean reward (training): 0.49
+Episode 245 reward (testing): 0.55
+Episode 250 reward (testing): 0.55
+Episodes 255 mean reward (training): 0.10
+Episode 255 reward (testing): 0.55
+Episode 260 reward (testing): 0.55
+Episodes 260 mean reward (training): 0.42
+Episodes 265 mean reward (training): 0.07
+Episode 265 reward (testing): 0.56
+Episode 270 reward (testing): 0.54
+Episodes 270 mean reward (training): 0.23
+Episode 275 reward (testing): 0.55
+Episodes 275 mean reward (training): -0.15
+Episode 280 reward (testing): 0.55
+Episodes 280 mean reward (training): -0.01
+Episode 285 reward (testing): 0.55
+Episode 290 reward (testing): 0.55
+Episodes 285 mean reward (training): 0.41
+Episodes 290 mean reward (training): 0.47
+Episode 295 reward (testing): 0.55
+Episodes 295 mean reward (training): -0.56
+Episode 300 reward (testing): 0.54
+Episodes 300 mean reward (training): 0.31
+Saved Model at episode: 300
+Time(gm): Fri, 25 Aug 2017 00:29:26
+Episodes 305 mean reward (training): 0.30
+Episode 305 reward (testing): 0.55
+Episodes 310 mean reward (training): -0.13
+Episode 310 reward (testing): 0.55
+Episodes 315 mean reward (training): -0.44
+Episode 315 reward (testing): 0.55
+Episodes 320 mean reward (training): -0.28
+Episode 320 reward (testing): 0.55
+Episodes 325 mean reward (training): -0.52
+Episode 325 reward (testing): 0.55
+Episodes 330 mean reward (training): 0.51
+Episode 330 reward (testing): 0.55
+Episodes 335 mean reward (training): 0.08
+Episode 335 reward (testing): 0.56
+Episodes 340 mean reward (training): -0.43
+Episode 340 reward (testing): 0.54
+Episodes 345 mean reward (training): 0.31
+Episodes 350 mean reward (training): -0.54
+Episode 345 reward (testing): 0.55
+Episodes 355 mean reward (training): -0.21
+Episodes 360 mean reward (training): 0.55
+Episode 350 reward (testing): 0.54
+Episodes 365 mean reward (training): -0.83
+Episode 355 reward (testing): 0.55
+Episodes 370 mean reward (training): -0.07
+Episode 360 reward (testing): 0.55
+Episode 365 reward (testing): 0.55
+Episodes 375 mean reward (training): -0.30
+Episodes 380 mean reward (training): 0.02
+Episode 370 reward (testing): 0.54
+Episodes 385 mean reward (training): -0.02
+Episodes 390 mean reward (training): -0.54
+Episode 375 reward (testing): 0.55
+Episodes 395 mean reward (training): 0.11
+Episodes 400 mean reward (training): 0.13
+Saved Model at episode: 400
+Time(gm): Fri, 25 Aug 2017 01:43:52
+Episode 380 reward (testing): 0.55
+Episodes 405 mean reward (training): -0.55
+Episodes 410 mean reward (training): 0.32
+Episode 385 reward (testing): 0.55
+Episodes 415 mean reward (training): -0.31
+Episode 390 reward (testing): 0.55
+Episode 395 reward (testing): 0.54
+Episodes 420 mean reward (training): -0.72
+Episodes 425 mean reward (training): -0.39
+Episode 400 reward (testing): 0.55
+Episodes 430 mean reward (training): -0.55
+Episodes 435 mean reward (training): -0.30
+Episode 405 reward (testing): 0.55
+Episodes 440 mean reward (training): 0.30
+Episodes 445 mean reward (training): -0.84
+Episode 410 reward (testing): 0.54
+Episode 415 reward (testing): 0.58
+Episodes 450 mean reward (training): -0.30
+Episodes 455 mean reward (training): -0.87
+Episode 420 reward (testing): 0.54
+Episodes 460 mean reward (training): 0.12
+Episode 425 reward (testing): 0.54
+Episodes 465 mean reward (training): 0.34
+Episodes 470 mean reward (training): -0.48
+Episode 430 reward (testing): 0.54
+Episodes 475 mean reward (training): -0.55
+Episodes 480 mean reward (training): -0.23
+Episode 435 reward (testing): 0.54
+Episode 440 reward (testing): 0.58
+Episode 445 reward (testing): 0.57
+Episodes 485 mean reward (training): -0.31
+Episode 450 reward (testing): 0.57
+Episode 455 reward (testing): 0.58
+Episodes 490 mean reward (training): 0.01
+Episode 460 reward (testing): 0.58
+Episodes 495 mean reward (training): -0.81
+Episodes 500 mean reward (training): -0.81
+Saved Model at episode: 500
+Time(gm): Fri, 25 Aug 2017 02:30:35
+Episode 465 reward (testing): -0.82
+Episodes 505 mean reward (training): -0.68
+Episodes 510 mean reward (training): -0.61
+Episode 470 reward (testing): -0.81
+Episodes 515 mean reward (training): -0.79
+Episode 475 reward (testing): -0.80
+Episodes 520 mean reward (training): -0.78
+Episode 480 reward (testing): 0.14
+Episodes 525 mean reward (training): -0.60
+Episode 485 reward (testing): -0.74
+Episodes 530 mean reward (training): -0.25
+Episode 490 reward (testing): -0.81
+Episodes 535 mean reward (training): -0.78
+Episode 495 reward (testing): -0.83
+Episode 500 reward (testing): -0.82
+Episodes 540 mean reward (training): -0.43
+Episode 505 reward (testing): -0.02
+Episodes 545 mean reward (training): -0.49
+Episode 510 reward (testing): -0.82
+Episodes 550 mean reward (training): -0.81
+Episode 515 reward (testing): -0.81
+Episodes 555 mean reward (training): -0.65
+Episode 520 reward (testing): -0.81
+Episodes 560 mean reward (training): -0.79
+Episode 525 reward (testing): -0.80
+Episode 530 reward (testing): -0.79
+Episodes 565 mean reward (training): -0.64
+Episode 535 reward (testing): -0.81
+Episodes 570 mean reward (training): -0.66
+Episode 540 reward (testing): -0.68
+Episodes 575 mean reward (training): -0.81
+Episode 545 reward (testing): -0.77
+Episodes 580 mean reward (training): -0.92
+Episode 550 reward (testing): -0.78
+Episodes 585 mean reward (training): -0.80
+Episode 555 reward (testing): -0.80
+Episodes 590 mean reward (training): -0.80
+Episode 560 reward (testing): -0.79
+Episodes 595 mean reward (training): -0.80
+Episode 565 reward (testing): -0.67
+Episodes 600 mean reward (training): -0.80
+Saved Model at episode: 600
+Time(gm): Fri, 25 Aug 2017 03:02:57
+Episode 570 reward (testing): -0.83
+Episodes 605 mean reward (training): -0.63
+Episodes 610 mean reward (training): -0.73
+Episode 575 reward (testing): -0.81
+Episode 580 reward (testing): -0.79
+Episodes 615 mean reward (training): -0.61
+Episode 585 reward (testing): -0.77
+Episodes 620 mean reward (training): -0.79
+Episode 590 reward (testing): -0.80
+Episodes 625 mean reward (training): -0.79
+Episode 595 reward (testing): -0.80
+Episodes 630 mean reward (training): -0.81
+Episodes 635 mean reward (training): -0.79
+Episode 600 reward (testing): -0.78
+Episodes 640 mean reward (training): -0.80
+Episode 605 reward (testing): -0.79
+Episode 5 reward (testing): -0.41
+Episodes 5 mean reward (training): -0.49
+Episodes 10 mean reward (training): -0.43
+Episodes 5 mean reward (training): -0.80
+Episode 5 reward (testing): -0.79
+Episodes 10 mean reward (training): -0.81
+Episode 10 reward (testing): -0.81
+Episodes 15 mean reward (training): -0.81
+Episode 15 reward (testing): -0.81
+Episode 20 reward (testing): -0.81
+Episodes 5 mean reward (training): 0.04
+Episode 5 reward (testing): 0.60
+Episode 5 reward (testing): -0.79
+Episode 10 reward (testing): -0.79
+Episodes 5 mean reward (training): 0.79
+Episodes 10 mean reward (training): 0.85
+Episode 15 reward (testing): -0.81

@@ -10,13 +10,23 @@ from critic_network import CriticNetwork
 from actor_network import ActorNetwork
 from replay_buffer import ReplayBuffer
 
+from helper import *
+
 # Hyper Parameters:
 
 REPLAY_BUFFER_SIZE = 1000000
 REPLAY_START_SIZE = 10000
 BATCH_SIZE = 64
-GAMMA = 0.8
+GAMMA = 0.995
 
+
+def make_session(num_cpu):
+    """Returns a session that will use <num_cpu> CPU's only"""
+    tf_config = tf.ConfigProto(
+        inter_op_parallelism_threads=num_cpu,
+        intra_op_parallelism_threads=num_cpu,
+        device_count = {'GPU': 0})
+    return tf.InteractiveSession(config=tf_config)
 
 class DDPG:
     """docstring for DDPG"""
@@ -25,13 +35,19 @@ class DDPG:
         self.environment = env
         # Randomly initialize actor network and critic network
         # with both their target networks
-        self.state_dim = env.observation_space.shape[0]
-        self.action_dim = env.action_space.shape[0]
+        self.state_dim = 58#env.observation_space.shape[0]
+        self.action_dim = 18#env.action_space.shape[0]
+        self.atoms = 11
+        
+        self.v_max = 5
+        self.v_min = -5
+        self.delta_z = (self.v_max - self.v_min) / (self.atoms - 1.)
+        self.z = np.tile(np.asarray([self.v_min + i * self.delta_z for i in range(self.atoms)]).astype(np.float32),(BATCH_SIZE,1)) # shape (BATCH_SIZE,atoms)
 
-        self.sess = tf.InteractiveSession()
+        self.sess = make_session(3)
 
         self.actor_network = ActorNetwork(self.sess,self.state_dim,self.action_dim)
-        self.critic_network = CriticNetwork(self.sess,self.state_dim,self.action_dim)
+        self.critic_network = CriticNetwork(self.sess,self.state_dim,self.action_dim,self.atoms,self.z)
 
         # initialize replay buffer
         self.replay_buffer = ReplayBuffer(REPLAY_BUFFER_SIZE)
@@ -58,19 +74,39 @@ class DDPG:
 
         next_action_batch = self.actor_network.target_actions(next_state_batch)
         q_value_batch = self.critic_network.target_q(next_state_batch,next_action_batch)
-        y_batch = []
-        for i in range(len(minibatch)):
-            if done_batch[i]:
-                y_batch.append(reward_batch[i])
-            else :
-                y_batch.append(reward_batch[i] + GAMMA * q_value_batch[i])
-        y_batch = np.resize(y_batch,[BATCH_SIZE,1])
+        done_batch = np.asarray([0. if done else 1. for done in done_batch])
+        
+        Tz = np.minimum(self.v_max, np.maximum(self.v_min,reward_batch[:,np.newaxis] + GAMMA * self.z * done_batch[:,np.newaxis]))
+        b = (Tz - self.v_min) / self.delta_z
+        l,u = np.floor(b+1e-3).astype(int),np.ceil(b-1e-3).astype(int)
+        #print(l)
+        #print(u)
+        p = q_value_batch
+        m_batch = np.zeros((BATCH_SIZE,self.atoms))
+        A = p * (u - b)
+        B = p * (b - l)
+        for i in range(BATCH_SIZE):
+            for j in range(self.atoms):
+                m_batch[i,l[i,j]] += A[i,j]
+                m_batch[i,u[i,j]] += B[i,j]
         # Update critic by minimizing the loss L
-        self.critic_network.train(y_batch,state_batch,action_batch)
+        self.critic_network.train(m_batch.astype(np.float32),state_batch,action_batch)
 
         # Update the actor policy using the sampled gradient:
         action_batch_for_gradients = self.actor_network.actions(state_batch)
         q_gradient_batch = self.critic_network.gradients(state_batch,action_batch_for_gradients)
+        
+        q_gradient_batch *= -1.
+        #print(q_gradient_batch)
+        # invert gradient formula : dq = (a_max-a) / (a_max - a_min) if dq>0, else dq = (a - a_min) / (a_max - a_min)
+        for i in range(BATCH_SIZE): # In our case a_max = 1, a_min = 0
+            for j in range(18):
+                dq = q_gradient_batch[i,j]
+                a = action_batch_for_gradients[i,j]
+                if dq > 0.:
+                    q_gradient_batch[i,j] *= (0.95-a)
+                else:
+                    q_gradient_batch[i,j] *= a-0.05
 
         self.actor_network.train(q_gradient_batch,state_batch)
 

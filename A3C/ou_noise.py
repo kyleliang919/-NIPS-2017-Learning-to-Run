@@ -10,7 +10,7 @@ import numpy.random as nr
 
 class OUNoise:
     """docstring for OUNoise"""
-    def __init__(self,action_dimension,mu=0.0, theta=0.05, sigma=0.2):
+    def __init__(self,action_dimension,mu=0.0, theta=0.01, sigma=0.08):
         self.action_dimension = action_dimension
         self.mu = mu
         self.theta = theta
@@ -28,10 +28,10 @@ class OUNoise:
         return self.state
 
 if __name__ == '__main__':
-    ou = OUNoise(3)
+    ou = OUNoise(18)
     states = []
-    for i in range(1000):
-        states.append(ou.noise())
+    for i in range(115):
+        states.append([max(0.5,i) for i in ou.noise()])
     import matplotlib.pyplot as plt
 
     plt.plot(states)

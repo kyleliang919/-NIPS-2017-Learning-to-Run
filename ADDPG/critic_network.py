@@ -2,12 +2,11 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 import numpy as np
 import math
+from helper import *
 
 
-LAYER1_SIZE = 400
-LAYER2_SIZE = 300
-LEARNING_RATE = 1e-3
-TAU = 0.001
+LEARNING_RATE = 1e-4
+TAU = 1e-4
 L2 = 0.01
 
 class CriticNetwork:
@@ -18,64 +17,52 @@ class CriticNetwork:
         self.state_input,\
         self.action_input,\
         self.q_value_output,\
-        self.net = self.create_q_network(state_dim,action_dim,scope)
+        self.net = self.create_q_network(state_dim,action_dim,True,scope)
 
         # create target q network (the same structure with q network)
-        self.target_state_input,\
-        self.target_action_input,\
-        self.target_q_value_output,\
-        self.target_update = self.create_target_q_network(state_dim,action_dim,self.net,scope)
+        if scope == 'worker_1/critic':
+            self.target_state_input,self.target_action_input,self.target_q_value_output,self.target_update = self.create_target_q_network(state_dim,action_dim,True,self.net,scope)
 
-	if scope != 'global/critic':
-            self.y_input = tf.placeholder("float",[None,1])
-            weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
-            self.cost = tf.reduce_mean(tf.square(self.y_input - self.q_value_output)) + weight_decay
-	    global_vars_critic = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'global/critic')
-	    local_vars_critic = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
-            self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE)
-	    self.parameters_gradients,_ = zip(*self.optimizer.compute_gradients(self.cost,local_vars_critic))
-	    self.optimizer = self.optimizer.apply_gradients(zip(self.parameters_gradients,global_vars_critic))
-            self.action_gradients = tf.gradients(self.q_value_output,self.action_input)
-	    
-	sess.run(tf.global_variables_initializer())
+        if scope == 'worker_1/critic':
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS,scope)
+    	    with tf.control_dependencies(update_ops):
+                self.y_input = tf.placeholder("float",[None,1])
+                weight_decay = tf.add_n([L2 * tf.nn.l2_loss(var) for var in self.net])
+                
+                self.cost = tf.reduce_mean(tf.square(self.y_input - self.q_value_output)) + weight_decay
+                self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE)
+                self.parameters_gradients,_ = zip(*self.optimizer.compute_gradients(self.cost,self.net))
+                self.parameters_graidents,self.global_norm = tf.clip_by_global_norm(self.parameters_gradients,1.0)
+                self.optimizer = self.optimizer.apply_gradients(zip(self.parameters_gradients,self.net))
+                self.action_gradients = tf.gradients(self.q_value_output,self.action_input)
 
-        #self.update_target()
+        sess.run(tf.global_variables_initializer())
 
-    def create_q_network(self,state_dim,action_dim,scope):
-	with tf.variable_scope(scope):
-        # the layer size could be changed
-            layer1_size = LAYER1_SIZE
-            layer2_size = LAYER2_SIZE
+    def create_q_network(self,state_dim,action_dim,phase,scope):
+        with tf.variable_scope(scope):
 
             state_input = tf.placeholder("float",[None,state_dim])
             action_input = tf.placeholder("float",[None,action_dim])
 
-            W1 = self.variable([state_dim,layer1_size],state_dim)
-            b1 = self.variable([layer1_size],state_dim)
-            W2 = self.variable([layer1_size,layer2_size],layer1_size+action_dim)
-            W2_action = self.variable([action_dim,layer2_size],layer1_size+action_dim)
-            b2 = self.variable([layer2_size],layer1_size+action_dim)
-            W3 = tf.Variable(tf.random_uniform([layer2_size,1],-3e-3,3e-3))
-            b3 = tf.Variable(tf.random_uniform([1],-3e-3,3e-3))
+	    h1 = dense_relu_batch(state_input,128,phase)
+	    h1_a = dense_relu_batch(action_input,128,phase)
+	    h2 = dense(tf.add(h1,h1_a),128,tf.nn.relu,tf.contrib.layers.xavier_initializer())
+	    q_value_output = dense(h2,1,None,tf.random_uniform_initializer(-3e-3,3e-3))
+            net = [v for v in tf.trainable_variables() if scope in v.name]
 
-            layer1 = tf.nn.relu(tf.matmul(state_input,W1) + b1)
-            layer2 = tf.nn.relu(tf.matmul(layer1,W2) + tf.matmul(action_input,W2_action) + b2)
-            q_value_output = tf.identity(tf.matmul(layer2,W3) + b3)
+            return state_input,action_input,q_value_output,net
 
-            return state_input,action_input,q_value_output,[W1,b1,W2,W2_action,b2,W3,b3]
-
-    def create_target_q_network(self,state_dim,action_dim,net,scope):
-        state_input = tf.placeholder("float",[None,state_dim])
-        action_input = tf.placeholder("float",[None,action_dim])
-
+    def create_target_q_network(self,state_dim,action_dim,phase,net,scope):
+        state_input,action_input,q_value_output,target_net = self.create_q_network(state_dim,action_dim,phase,scope+'/target') 
+        target_update = []
         ema = tf.train.ExponentialMovingAverage(decay=1-TAU)
         target_update = ema.apply(net)
         target_net = [ema.average(x) for x in net]
-
-        layer1 = tf.nn.relu(tf.matmul(state_input,target_net[0]) + target_net[1])
-        layer2 = tf.nn.relu(tf.matmul(layer1,target_net[2]) + tf.matmul(action_input,target_net[3]) + target_net[4])
-        q_value_output = tf.identity(tf.matmul(layer2,target_net[5]) + target_net[6])
-
+        '''
+        for i in range(len(target_net)):
+            # theta' <-- tau*theta + (1-tau)*theta'
+            target_update.append(target_net[i].assign(tf.add(tf.multiply(TAU,net[i]),tf.multiply((1-TAU),target_net[i]))))
+            '''
         return state_input,action_input,q_value_output,target_update
 
     def update_target(self,sess):
@@ -83,16 +70,20 @@ class CriticNetwork:
 
     def train(self,sess,y_batch,state_batch,action_batch):
         self.time_step += 1
-        sess.run(self.optimizer,feed_dict={
+        return sess.run([self.optimizer,self.cost,self.y_input,self.q_value_output,self.global_norm],feed_dict={
             self.y_input:y_batch,
             self.state_input:state_batch,
-            self.action_input:action_batch
+            self.action_input:action_batch,
+            self.target_state_input:state_batch,
+            self.target_action_input:action_batch
             })
 
     def gradients(self,sess,state_batch,action_batch):
         return sess.run(self.action_gradients,feed_dict={
             self.state_input:state_batch,
-            self.action_input:action_batch
+            self.action_input:action_batch,
+            self.target_state_input:state_batch,
+            self.target_action_input:action_batch
             })[0]
 
     def target_q(self,sess,state_batch,action_batch):
@@ -104,7 +95,8 @@ class CriticNetwork:
     def q_value(self,sess,state_batch,action_batch):
         return sess.run(self.q_value_output,feed_dict={
             self.state_input:state_batch,
-            self.action_input:action_batch})
+            self.action_input:action_batch
+            })
 
     # f fan-in size
     def variable(self,shape,f):

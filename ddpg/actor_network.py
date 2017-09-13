@@ -1,13 +1,14 @@
 import tensorflow as tf
 import numpy as np
 import math
+from helper import dlrelu
 
 
 # Hyper Parameters
 LAYER1_SIZE = 400
 LAYER2_SIZE = 300
-LEARNING_RATE = 1e-4
-TAU = 0.001
+LEARNING_RATE = 5e-5
+TAU = 1e-5
 BATCH_SIZE = 64
 
 class ActorNetwork:
@@ -26,14 +27,14 @@ class ActorNetwork:
         # define training rules
         self.create_training_method()
 
-        self.sess.run(tf.initialize_all_variables())
+        self.sess.run(tf.global_variables_initializer())
 
         self.update_target()
         #self.load_network()
 
     def create_training_method(self):
         self.q_gradient_input = tf.placeholder("float",[None,self.action_dim])
-        self.parameters_gradients = tf.gradients(self.action_output,self.net,-self.q_gradient_input)
+        self.parameters_gradients = tf.gradients(self.action_output,self.net,self.q_gradient_input)
         self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(zip(self.parameters_gradients,self.net))
 
     def create_network(self,state_dim,action_dim):
@@ -47,11 +48,11 @@ class ActorNetwork:
         W2 = self.variable([layer1_size,layer2_size],layer1_size)
         b2 = self.variable([layer2_size],layer1_size)
         W3 = tf.Variable(tf.random_uniform([layer2_size,action_dim],-3e-3,3e-3))
-        b3 = tf.Variable(tf.random_uniform([action_dim],-3e-3,3e-3))
+        b3 = tf.Variable(tf.random_uniform([action_dim],1e-3,0.1))
 
-        layer1 = tf.nn.relu(tf.matmul(state_input,W1) + b1)
-        layer2 = tf.nn.relu(tf.matmul(layer1,W2) + b2)
-        action_output = tf.tanh(tf.matmul(layer2,W3) + b3)
+        layer1 = tf.tanh(tf.matmul(state_input,W1) + b1)
+        layer2 = tf.tanh(tf.matmul(layer1,W2) + b2)
+        action_output = tf.sigmoid(tf.matmul(layer2,W3) + b3)
 
         return state_input,action_output,[W1,b1,W2,b2,W3,b3]
 
@@ -61,9 +62,9 @@ class ActorNetwork:
         target_update = ema.apply(net)
         target_net = [ema.average(x) for x in net]
 
-        layer1 = tf.nn.relu(tf.matmul(state_input,target_net[0]) + target_net[1])
-        layer2 = tf.nn.relu(tf.matmul(layer1,target_net[2]) + target_net[3])
-        action_output = tf.tanh(tf.matmul(layer2,target_net[4]) + target_net[5])
+        layer1 = tf.tanh(tf.matmul(state_input,target_net[0]) + target_net[1])
+        layer2 = tf.tanh(tf.matmul(layer1,target_net[2]) + target_net[3])
+        action_output = tf.sigmoid(tf.matmul(layer2,target_net[4]) + target_net[5])
 
         return state_input,action_output,target_update,target_net
 
